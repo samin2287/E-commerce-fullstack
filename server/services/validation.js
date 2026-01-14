@@ -1,4 +1,4 @@
-const userSchema = require("../server/models/userSchema");
+const userSchema = require("../models/userSchema");
 
 const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
