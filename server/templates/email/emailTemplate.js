@@ -59,7 +59,7 @@ const otpVerificationTemplate = ({ fullName, otp, appName, supportEmail }) => {
         </div>
 
         <div class="content">
-          <p>Hi <strong>${fullName}</strong>,</p>
+          <p>Hi <strong>${fullName || "User"}</strong>,</p>
 
           <p>
             Thank you for signing up! Please use the OTP below to verify your email
