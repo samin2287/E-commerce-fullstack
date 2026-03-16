@@ -1,8 +1,10 @@
-const e = require("express");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const userSchema = new mongoose.Schema(
   {
+    avatar: {
+      type: String,
+    },
     fullName: {
       type: String,
       trim: true,
@@ -11,6 +13,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
     password: {
       type: String,
@@ -38,7 +42,6 @@ const userSchema = new mongoose.Schema(
     otpExpires: {
       type: Date,
     },
-
     resetPassToken: {
       type: String,
     },
@@ -48,18 +51,15 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
-
 userSchema.pre("save", async function () {
   const user = this;
   if (!user.isModified("password")) {
     return;
   }
-
   try {
     user.password = await bcrypt.hash(user.password, 10);
   } catch (err) {}
 });
-
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

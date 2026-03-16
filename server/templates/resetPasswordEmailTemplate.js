@@ -1,10 +1,15 @@
-const otpVerificationTemplate = ({ fullName, otp, appName, supportEmail }) => {
+const resetPasswordTemplate = ({
+  fullName,
+  resetLink,
+  appName,
+  supportEmail,
+}) => {
   return `
   <!DOCTYPE html>
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
-      <title>Email Verification</title>
+      <title>Reset Password</title>
       <style>
         body {
           margin: 0;
@@ -31,18 +36,6 @@ const otpVerificationTemplate = ({ fullName, otp, appName, supportEmail }) => {
           color: #333333;
           line-height: 1.6;
         }
-        .otp-box {
-          margin: 20px 0;
-          padding: 15px;
-          text-align: center;
-          background: #f0f2ff;
-          border: 1px dashed #4f46e5;
-          border-radius: 6px;
-          font-size: 26px;
-          font-weight: bold;
-          letter-spacing: 6px;
-          color: #4f46e5;
-        }
         .footer {
           padding: 15px;
           text-align: center;
@@ -57,34 +50,35 @@ const otpVerificationTemplate = ({ fullName, otp, appName, supportEmail }) => {
         <div class="header">
           <h2>${appName}</h2>
         </div>
-
         <div class="content">
           <p>Hi <strong>${fullName || "User"}</strong>,</p>
-
           <p>
-            Thank you for signing up! Please use the OTP below to verify your email
-            address:
+            We received a request to reset your password. Click the button below
+            to create a new password.
           </p>
-
-          <div class="otp-box">${otp}</div>
-
+<a href="${resetLink}" style="
+    display: inline-block;
+    margin: 20px 0;
+    padding: 12px 20px;
+    background: #4f46e5;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+">Reset Password</a>
           <p>
-            ⏰ This OTP is valid for <strong>2 minutes</strong> only.
+             This link will expire in <strong>10 minutes</strong> for security
+            reasons.
           </p>
-
           <p>
-            If you didn’t request this verification, you can safely ignore this
+            If you didn’t request a password reset, you can safely ignore this
             email.
           </p>
-
           <p>
-            For security reasons, <strong>do not share this OTP</strong> with
-            anyone.
+            For security reasons, please do not share this link with anyone.
           </p>
-
           <p>Thanks,<br />The ${appName} Team</p>
         </div>
-
         <div class="footer">
           <p>
             Need help? Contact us at
@@ -97,4 +91,4 @@ const otpVerificationTemplate = ({ fullName, otp, appName, supportEmail }) => {
   `;
 };
 
-module.exports = { otpVerificationTemplate };
+module.exports = { resetPasswordTemplate };
