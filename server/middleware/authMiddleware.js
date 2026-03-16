@@ -1,20 +1,17 @@
 const { verifyToken } = require("../services/helpers");
-const authMiddleware = async (req, res, next) => {
-  try {
-    const token = req.cookies;
-    console.log(token["X-AS-Token"]);
-    if (!token["X-AS-Token"]) {
-      return res.status(401).send({ message: "Invalid Request!" });
-    }
-    const decoded = verifyToken(token["X-AS-Token"]);
-    if (!decoded) {
-      return res.status(401).send({ message: "Invalid Request!" });
-    }
-    req.user = decoded;
-    next();
-  } catch (error) {
-    console.log(error);
-    return res.status(401).send("Invalid Request");
+const asyncHandler = require("../utils/asyncHandler");
+const ApiError = require("../utils/ApiError");
+const authMiddleware = asyncHandler(async (req, res, next) => {
+  const token = req.cookies;
+  const accessToken = token["X-AS-Token"];
+  if (!accessToken) {
+    throw new ApiError(401, "Invalid Request!");
   }
-};
+  const decoded = verifyToken(accessToken);
+  if (!decoded) {
+    throw new ApiError(401, "Invalid Request!");
+  }
+  req.user = decoded;
+  next();
+});
 module.exports = authMiddleware;

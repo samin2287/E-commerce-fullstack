@@ -1,8 +1,9 @@
 class ApiError extends Error {
   constructor(statusCode, messages = []) {
-    super();
+    const msgs = Array.isArray(messages) ? messages : [messages];
+    super(msgs.join(", "));
     this.statusCode = statusCode;
-    this.messages = Array.isArray(messages) ? messages : [messages];
+    this.messages = msgs;
     this.success = false;
   }
 }

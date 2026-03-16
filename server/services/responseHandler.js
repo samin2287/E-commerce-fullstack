@@ -1,19 +1,4 @@
-const responseHandler = (
-  res,
-  statusCode = 200,
-  message = "",
-  success = false,
-  data = null,
-) => {
-  return res.status(statusCode).json({
-    success,
-    message,
-    ...(data && { data }),
-  });
-};
-module.exports = { responseHandler };
-
-const success = (
+const successRes = (
   res,
   statusCode = 200,
   messages = ["Request successful"],
@@ -26,4 +11,4 @@ const success = (
   });
 };
 
-module.exports = { success };
+module.exports = successRes;

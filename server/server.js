@@ -12,10 +12,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 dbConfig();
 cloudinaryConfig();
-app.use(errorHandler);
 app.use(cookieParser());
 const port = 8000;
 app.use(route);
+app.use(errorHandler);
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
