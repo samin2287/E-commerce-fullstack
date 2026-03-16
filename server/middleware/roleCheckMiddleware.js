@@ -6,9 +6,7 @@ const roleCheckMiddleware = (...roles) => {
     if (roles.includes(req.user.role)) {
       return next();
     }
-
     throw new ApiError(403, "Invalid Request");
   });
 };
-
 module.exports = roleCheckMiddleware;
