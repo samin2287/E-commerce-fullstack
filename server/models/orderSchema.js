@@ -25,7 +25,7 @@ const orderItems = new mongoose.Schema({
 const paymentSchema = new mongoose.Schema({
   method: {
     type: String,
-    enum: ["SSLCommerz", "Bkash", "Nagad", "Upay", "Cash On Delivery"],
+    enum: ["Stripe", "Cash On Delivery"],
   },
   paymentId: String,
   status: {
