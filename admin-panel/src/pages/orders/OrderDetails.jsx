@@ -1,7 +1,7 @@
 import React from "react";
 
 const OrderDetails = () => {
-  return <div>OrderDetails</div>;
+  return <div className="text-white">OrderDetails</div>;
 };
 
 export default OrderDetails;

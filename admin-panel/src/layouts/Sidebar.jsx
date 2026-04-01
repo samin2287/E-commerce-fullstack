@@ -8,7 +8,7 @@ import {
   FiUser,
 } from "react-icons/fi";
 
-const ROLE = "admin"; // 👉 UI demo purpose (change manually if needed)
+const ROLE = "admin"; // Change this to "editor" to test editor view
 
 const NAV_SECTIONS = [
   {

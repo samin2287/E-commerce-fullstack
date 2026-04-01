@@ -1,7 +1,7 @@
 import React from "react";
 
 const CategoryCreate = () => {
-  return <div>CategoryCreate</div>;
+  return <div className="text-white">CategoryCreate</div>;
 };
 
 export default CategoryCreate;

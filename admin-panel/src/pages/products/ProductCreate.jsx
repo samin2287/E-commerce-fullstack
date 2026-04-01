@@ -1,7 +1,7 @@
 import React from "react";
 
 const ProductCreate = () => {
-  return <div>ProductCreate</div>;
+  return <div className="text-white">ProductCreate</div>;
 };
 
 export default ProductCreate;

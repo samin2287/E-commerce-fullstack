@@ -1,7 +1,7 @@
 import React from "react";
 
 const CategoryEdit = () => {
-  return <div>CategoryEdit</div>;
+  return <div className="text-white">CategoryEdit</div>;
 };
 
 export default CategoryEdit;

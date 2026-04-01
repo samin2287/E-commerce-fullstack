@@ -1,7 +1,7 @@
 import React from "react";
 
 const ProductUpdate = () => {
-  return <div>ProductUpdate</div>;
+  return <div className="text-white">ProductUpdate</div>;
 };
 
 export default ProductUpdate;
