@@ -102,6 +102,8 @@ const getProductList = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const category = req.query.category;
+  const search = req.query.search;
+
   const skip = (page - 1) * limit;
   // totalProducts with category filter if exists
   const totalProducts = category
@@ -142,6 +144,16 @@ const getProductList = asyncHandler(async (req, res) => {
     pipeline.push({
       $match: {
         "category.slug": category,
+      },
+    });
+  }
+  if (search) {
+    pipeline.push({
+      $match: {
+        $or: [
+          { title: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+        ],
       },
     });
   }
