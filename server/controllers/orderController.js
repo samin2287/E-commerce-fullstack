@@ -3,7 +3,8 @@ const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 const orderSchema = require("../models/orderSchema");
 const cartSchema = require("../models/cartSchema");
-const stripe = require("stripe")(`process.env.STRIPE_SECRET_KEY`);
+const stripe = require("stripe")(`private ${process.env.STRIPE_SECRET_KEY}`);
+const endpointSecret = `private ${process.env.STRIPE_WEBHOOK_SECRET_KEY}`;
 
 const checkOut = asyncHandler(async (req, res) => {
   const { paymentType, cartId, shippingAddress, insideDhaka } = req.body;
@@ -28,7 +29,6 @@ const checkOut = asyncHandler(async (req, res) => {
   const totalPrice = cartData.items.reduce((total, current) => {
     return (total += current.subtotal);
   }, charge);
-
   const orderData = new orderSchema({
     user: req.user._id,
     items: cartData.items,
@@ -65,6 +65,10 @@ const checkOut = asyncHandler(async (req, res) => {
       },
     ],
     customer_email: `${req.user.email}`,
+    metadata: {
+      orderId: orderData._id.toString(),
+    },
+
     success_url: `https://example.com/success`,
     cancel_url: `https://example.com/error`,
   });
@@ -73,6 +77,36 @@ const checkOut = asyncHandler(async (req, res) => {
   res.redirect(303, session.url);
 });
 
+const webhook = async (req, res) => {
+  const signature = req.headers["stripe-signature"];
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, signature, endpointSecret);
+  } catch (err) {
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+
+    const orderId = session.metadata?.orderId;
+
+    if (orderId) {
+      await orderSchema.findByIdAndUpdate(
+        orderId,
+        {
+          "payment.status": "paid",
+          status: "paid",
+        },
+        { new: true },
+      );
+    }
+  }
+  res.send();
+};
 module.exports = {
   checkOut,
+  webhook,
 };
