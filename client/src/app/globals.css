@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-zinc-50 text-zinc-900;
+  }
+}
+
+/* Swiper theming to match green brand */
+:root {
+  --swiper-theme-color: #059669;
+  --swiper-pagination-bullet-inactive-color: #d4d4d8;
+}
