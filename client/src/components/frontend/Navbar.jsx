@@ -1,22 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
-import { IoCartOutline, IoHeartOutline, IoMenu, IoSearchOutline } from "react-icons/io5";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  IoCartOutline,
+  IoChevronDownOutline,
+  IoHeartOutline,
+  IoLogInOutline,
+  IoLogOutOutline,
+  IoMenu,
+  IoPersonCircleOutline,
+  IoSearchOutline,
+  IoSpeedometerOutline,
+} from "react-icons/io5";
 import { useShop } from "@/components/shared/AppProviders";
 import { theme } from "@/lib/constants/theme";
 
 const links = [
   { href: "/", label: "Home" },
-  { href: "/#products", label: "Shop" },
+  { href: "/shop", label: "Shop" },
+  { href: "/categories", label: "Categories" },
   { href: "/wishlist", label: "Wishlist" },
-  { href: "/login", label: "Account" },
 ];
 
 export default function Navbar() {
-  const { openCart, cartItems, wishlistIds } = useShop();
+  const { cartItems, wishlistIds, authUser, isAuthenticated, logoutUser } = useShop();
   const [open, setOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountWrapRef = useRef(null);
   const count = cartItems.reduce((n, l) => n + l.quantity, 0);
+
+  useEffect(() => {
+    const onClickOutside = (event) => {
+      if (!accountWrapRef.current?.contains(event.target)) {
+        setAccountOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 border-b border-emerald-900/20 bg-emerald-950 text-white">
@@ -53,11 +75,7 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-1 md:gap-2">
-          <Link
-            href="/wishlist"
-            className="relative rounded-xl p-2 text-emerald-100 transition hover:bg-emerald-900/60 hover:text-white"
-            aria-label="Wishlist"
-          >
+          <Link href="/wishlist" className="relative rounded-xl p-2 text-emerald-100 transition hover:bg-emerald-900/60 hover:text-white" aria-label="Wishlist">
             <IoHeartOutline className="h-6 w-6" />
             {wishlistIds.length > 0 ? (
               <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-400 px-1 text-[10px] font-bold text-emerald-950">
@@ -65,9 +83,8 @@ export default function Navbar() {
               </span>
             ) : null}
           </Link>
-          <button
-            type="button"
-            onClick={openCart}
+          <Link
+            href="/cart"
             className="relative rounded-xl p-2 text-emerald-100 transition hover:bg-emerald-900/60 hover:text-white"
             aria-label="Open cart"
           >
@@ -77,7 +94,68 @@ export default function Navbar() {
                 {count}
               </span>
             ) : null}
-          </button>
+          </Link>
+          <div className="relative" ref={accountWrapRef}>
+            <button
+              type="button"
+              onClick={() => setAccountOpen((v) => !v)}
+              className="inline-flex items-center gap-1 rounded-xl p-2 text-emerald-100 transition hover:bg-emerald-900/60 hover:text-white"
+              aria-label="Account menu"
+            >
+              <IoPersonCircleOutline className="h-6 w-6" />
+              <IoChevronDownOutline className="h-4 w-4" />
+            </button>
+            {accountOpen ? (
+              <div className="absolute right-0 top-12 z-50 w-52 overflow-hidden rounded-xl border border-emerald-900/30 bg-white py-2 text-zinc-800 shadow-xl">
+                {isAuthenticated ? (
+                  <>
+                    <div className="px-3 pb-2 text-xs text-zinc-500">
+                      Signed in as
+                      <p className="truncate font-semibold text-zinc-800">{authUser?.email}</p>
+                    </div>
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-50"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <IoSpeedometerOutline className="h-4 w-4 text-emerald-700" />
+                      Dashboard
+                    </Link>
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-zinc-50"
+                      onClick={() => {
+                        logoutUser();
+                        setAccountOpen(false);
+                      }}
+                    >
+                      <IoLogOutOutline className="h-4 w-4 text-emerald-700" />
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-50"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <IoLogInOutline className="h-4 w-4 text-emerald-700" />
+                      Sign in
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-50"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <IoPersonCircleOutline className="h-4 w-4 text-emerald-700" />
+                      Login / Register
+                    </Link>
+                  </>
+                )}
+              </div>
+            ) : null}
+          </div>
           <Link
             href="/cart"
             className="hidden rounded-xl px-3 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-900/60 md:inline"

@@ -8,12 +8,13 @@ import Button from "@/components/ui/Button";
 import { useShop } from "@/components/shared/AppProviders";
 
 export default function ProductCard({ product }) {
-  const { addToCart, toggleWishlist, isInWishlist } = useShop();
+  const { addToCart, toggleWishlist, isInWishlist, cartItems } = useShop();
   const liked = isInWishlist(product.id);
+  const isInCart = cartItems.some((line) => line.product.id === product.id);
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-900/5">
-      <Link href={`/products/${product.slug}`} className="relative aspect-[4/5] overflow-hidden bg-zinc-100">
+      <Link href={`/products/${product.slug}`} className="relative aspect-4/3 overflow-hidden bg-zinc-100">
         <Image
           src={product.image}
           alt={product.name}
@@ -57,15 +58,23 @@ export default function ProductCard({ product }) {
           </div>
         </div>
         <div className="mt-auto flex gap-2">
-          <Button
-            type="button"
-            className="flex-1"
-            size="sm"
-            disabled={!product.inStock}
-            onClick={() => addToCart(product, 1)}
-          >
-            {product.inStock ? "Add to cart" : "Out of stock"}
-          </Button>
+          {isInCart ? (
+            <Link href="/cart" className="flex-1">
+              <Button type="button" className="w-full" size="sm">
+                Go to cart
+              </Button>
+            </Link>
+          ) : (
+            <Button
+              type="button"
+              className="flex-1"
+              size="sm"
+              disabled={!product.inStock}
+              onClick={() => addToCart(product, 1)}
+            >
+              {product.inStock ? "Add to cart" : "Out of stock"}
+            </Button>
+          )}
           <Link href={`/products/${product.slug}`} className="flex-1">
             <Button variant="secondary" size="sm" className="w-full">
               Details

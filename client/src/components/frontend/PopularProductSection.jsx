@@ -8,7 +8,7 @@ import { getProducts } from "@/services/products";
 import "swiper/css";
 import "swiper/css/navigation";
 
-export default function FeaturedProductSection() {
+export default function PopularProductSection() {
   const products = useMemo(() => getProducts(), []);
 
   return (
@@ -24,8 +24,7 @@ export default function FeaturedProductSection() {
           640: { slidesPerView: 2 },
           1024: { slidesPerView: 3 },
         }}
-        className="featured-products-swiper pb-12"
-      >
+        className="featured-products-swiper pb-12">
         {products.map((p) => (
           <SwiperSlide key={p.id}>
             <ProductCard product={p} />

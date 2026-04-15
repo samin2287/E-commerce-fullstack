@@ -22,8 +22,7 @@ export default function AdminCategoriesPage() {
       render: () => (
         <button
           type="button"
-          className="text-sm font-medium text-emerald-700 hover:underline"
-        >
+          className="text-sm font-medium text-emerald-700 hover:underline">
           Edit
         </button>
       ),
@@ -33,7 +32,9 @@ export default function AdminCategoriesPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-zinc-600">Organize merchandising taxonomy.</p>
+        <p className="text-sm text-zinc-600">
+          Organize merchandising taxonomy.
+        </p>
         <Button type="button" variant="secondary">
           Add category
         </Button>

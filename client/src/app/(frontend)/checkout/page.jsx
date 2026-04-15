@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 import Button from "@/components/ui/Button";
 import CheckBox from "@/components/ui/CheckBox";
@@ -10,8 +11,25 @@ import { useShop } from "@/components/shared/AppProviders";
 const steps = ["Shipping", "Payment", "Review"];
 
 export default function CheckoutPage() {
-  const { subtotal, cartItems } = useShop();
+  const { cartItems, removeFromCart } = useShop();
   const [step, setStep] = useState(0);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedParam = searchParams.get("selected");
+  const selectedIds = selectedParam ? selectedParam.split(",").filter(Boolean) : [];
+  const checkoutItems = selectedIds.length
+    ? cartItems.filter((line) => selectedIds.includes(line.product.id))
+    : cartItems;
+  const checkoutSubtotal = checkoutItems.reduce(
+    (sum, line) => sum + line.product.price * line.quantity,
+    0,
+  );
+
+  const handlePlaceOrder = () => {
+    checkoutItems.forEach((line) => removeFromCart(line.product.id));
+    alert("Demo: order placed.");
+    router.push("/cart");
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">
@@ -71,7 +89,7 @@ export default function CheckoutPage() {
                 You&apos;re about to place a demo order. No charge will be made.
               </p>
               <ul className="mt-4 divide-y divide-zinc-100 rounded-xl border border-zinc-100">
-                {cartItems.map(({ product, quantity }) => (
+                {checkoutItems.map(({ product, quantity }) => (
                   <li key={product.id} className="flex justify-between gap-4 px-4 py-3 text-sm">
                     <span className="text-zinc-800">
                       {product.name} × {quantity}
@@ -95,7 +113,7 @@ export default function CheckoutPage() {
                 Continue
               </Button>
             ) : (
-              <Button type="button" onClick={() => alert("Demo: order placed.")}>
+              <Button type="button" disabled={!checkoutItems.length} onClick={handlePlaceOrder}>
                 Place order
               </Button>
             )}
@@ -104,10 +122,15 @@ export default function CheckoutPage() {
 
         <aside className="h-fit rounded-2xl border border-emerald-100 bg-emerald-50/60 p-6">
           <h2 className="text-sm font-semibold text-emerald-900">Cart summary</h2>
-          <p className="mt-4 text-3xl font-bold text-emerald-950">${subtotal.toFixed(2)}</p>
+          <p className="mt-4 text-3xl font-bold text-emerald-950">${checkoutSubtotal.toFixed(2)}</p>
           <p className="mt-2 text-xs text-emerald-800/80">
             Taxes & shipping shown for display only.
           </p>
+          {selectedIds.length ? (
+            <p className="mt-2 text-xs font-medium text-emerald-900">
+              Checkout for {checkoutItems.length} selected item(s)
+            </p>
+          ) : null}
         </aside>
       </div>
     </div>
