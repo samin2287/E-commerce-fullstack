@@ -61,12 +61,15 @@ const signupUser = asyncHandler(async (req, res) => {
   });
 
   await user.save();
-  successRes(
-    res,
-    201,
-    "User registered successfully.Please Verify your email",
-    true,
-  );
+  successRes(res, 201, "User registered successfully. Please verify your email", true, {
+    user: {
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      isVerified: user.isVerified,
+    },
+  });
 });
 
 const verifyOtp = asyncHandler(async (req, res) => {
@@ -151,19 +154,31 @@ const signInUser = asyncHandler(async (req, res) => {
   const refreshToken = generateRefreshToken(existingUser);
 
   res.cookie("X-AS-Token", accessToken, {
-    httpOnly: false,
+    httpOnly: true,
     secure: false,
+    sameSite: "none",
     maxAge: 3600000,
-    // sameSite: 'Strict'
   });
   res.cookie("X-RF-Token", refreshToken, {
-    httpOnly: false,
+    httpOnly: true,
     secure: false,
+    sameSite: "none",
     maxAge: 1296000000,
-    // sameSite: 'Strict'
   });
 
-  successRes(res, 200, "Login Successful", true);
+  successRes(res, 200, "Login Successful", true, {
+    user: {
+      _id: existingUser._id,
+      fullName: existingUser.fullName,
+      email: existingUser.email,
+      role: existingUser.role,
+    },
+    accessToken,
+  });
+  console.log("[auth] signInUser response:", {
+    email: existingUser.email,
+    role: existingUser.role,
+  });
 });
 
 const forgatePass = asyncHandler(async (req, res) => {
@@ -262,8 +277,30 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
   successRes(res, 200, "Profile updated", true, user);
 });
+const logoutUser = asyncHandler(async (req, res) => {
+  res.cookie("X-AS-Token", "", {
+    httpOnly: false,
+    secure: false,
+    sameSite: "none",
+    expires: new Date(0),
+  });
+  res.cookie("X-RF-Token", "", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "none",
+    expires: new Date(0),
+  });
+  successRes(res, 200, "Logged out successfully", true);
+});
+
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  const refreshToken = req.cookies?.["X-RF-Token"] || req.headers.authorization;
+  let refreshToken = req.cookies?.["X-RF-Token"];
+  if (!refreshToken) {
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      refreshToken = authHeader.slice(7);
+    }
+  }
   if (!refreshToken) {
     throw new ApiError(401, "Refresh token missing");
   }
@@ -274,13 +311,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   res.cookie("X-AS-Token", accessToken, {
     httpOnly: false,
     secure: false,
+    sameSite: "none",
     maxAge: 3600000,
-    // sameSite: 'Strict'
   });
-  successRes(res, 200, "Access token refreshed", true);
+  successRes(res, 200, "Access token refreshed", true, { accessToken });
 });
-
-module.exports = { updateUserProfile };
 
 module.exports = {
   signupUser,
@@ -292,4 +327,5 @@ module.exports = {
   getUserProfile,
   updateUserProfile,
   refreshAccessToken,
+  logoutUser,
 };

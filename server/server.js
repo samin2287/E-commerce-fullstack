@@ -14,7 +14,16 @@ const app = express();
 app.post("/webhook", express.raw({ type: "application/json" }), webhook);
 
 //  middlewares
-app.use(cors());
+const clientOrigins = [
+  process.env.CLIENT_URL || "http://localhost:3000",
+  "http://localhost:3001",
+];
+app.use(
+  cors({
+    origin: clientOrigins,
+    credentials: true,
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -22,7 +31,6 @@ app.use(cookieParser());
 //  configs
 dbConfig();
 cloudinaryConfig();
-
 //  routes
 app.use(route);
 

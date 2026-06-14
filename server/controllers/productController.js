@@ -9,6 +9,7 @@ const {
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 const successRes = require("../services/responseHandler");
+
 const createProduct = asyncHandler(async (req, res) => {
   const {
     title,
@@ -159,7 +160,7 @@ const getProductList = asyncHandler(async (req, res) => {
   }
   const productList = await productSchema.aggregate(pipeline);
   const totalPages = Math.ceil(totalProducts / limit);
-  successRes(res, 200, "Products fetched successfully", true, {
+  successRes(res, 200, "Products fetched successfully", {
     products: productList,
     pagination: {
       total: totalProducts,

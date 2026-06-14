@@ -29,10 +29,10 @@ const createNewCategory = asyncHandler(async (req, res) => {
     thumbnail: imgRes.secure_url,
   });
   await category.save();
-  successRes(res, 201, "Category Created Successfully", true, category);
+  successRes(res, 201, "Category Created Successfully", category);
 });
 const getAllCategories = asyncHandler(async (req, res) => {
   const categories = await categorySchema.find({});
-  successRes(res, 200, "Categories Fetched Successfully", true, categories);
+  successRes(res, 200, "Categories Fetched Successfully", categories);
 });
 module.exports = { createNewCategory, getAllCategories };
