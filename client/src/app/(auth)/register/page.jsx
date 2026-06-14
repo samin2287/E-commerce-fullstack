@@ -19,6 +19,7 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState("");
 
   const onChange = (field, value) => {
     setValues((prev) => ({ ...prev, [field]: value }));
@@ -35,18 +36,26 @@ export default function RegisterPage() {
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
+      setServerError("Please fix the highlighted fields.");
       toast.error("Registration failed. Please fix the highlighted fields.");
       return;
     }
     try {
-      const user = registerUser({ name: values.name.trim(), email: values.email.trim().toLowerCase() });
-      toast.success(`Account created for ${user.name}.`);
-      router.push("/dashboard");
-    } catch {
-      toast.error("Registration failed. Please try again.");
+      setServerError("");
+      await registerUser({
+        name: values.name.trim(),
+        email: values.email.trim().toLowerCase(),
+        password: values.password,
+      });
+      toast.success(`Account created successfully.`);
+      router.push(`/verify-otp?email=${encodeURIComponent(values.email.trim().toLowerCase())}`);
+    } catch (error) {
+      const message = error?.message || "Registration failed. Please try again.";
+      setServerError(message);
+      toast.error(message);
     }
   };
 
@@ -57,6 +66,11 @@ export default function RegisterPage() {
         <p className="mt-1 text-sm text-zinc-600">Join Verdant and manage orders from your dashboard.</p>
       </div>
       <form className="space-y-4" onSubmit={handleSubmit}>
+        {serverError ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {serverError}
+          </div>
+        ) : null}
         <Input
           label="Full name"
           name="name"
@@ -64,7 +78,10 @@ export default function RegisterPage() {
           autoComplete="name"
           required
           value={values.name}
-          onChange={(e) => onChange("name", e.target.value)}
+          onChange={(e) => {
+            onChange("name", e.target.value);
+            setServerError("");
+          }}
           error={errors.name}
           placeholder="e.g. John Doe"
         />
@@ -86,7 +103,10 @@ export default function RegisterPage() {
           autoComplete="new-password"
           required
           value={values.password}
-          onChange={(e) => onChange("password", e.target.value)}
+          onChange={(e) => {
+            onChange("password", e.target.value);
+            setServerError("");
+          }}
           error={errors.password}
           placeholder="Minimum 6 characters"
         />
@@ -97,7 +117,10 @@ export default function RegisterPage() {
           autoComplete="new-password"
           required
           value={values.confirmPassword}
-          onChange={(e) => onChange("confirmPassword", e.target.value)}
+          onChange={(e) => {
+            onChange("confirmPassword", e.target.value);
+            setServerError("");
+          }}
           error={errors.confirmPassword}
           placeholder="Retype password"
         />

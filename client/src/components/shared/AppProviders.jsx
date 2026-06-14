@@ -10,26 +10,73 @@ import React, {
   useState,
 } from "react";
 import { ToastContainer, toast } from "react-toastify";
+import { login, signup, fetchProfile, refreshToken, logout } from "@/services/auth";
 
 const CartWishlistContext = createContext(null);
 const AUTH_STORAGE_KEY = "verdant_auth_user";
+const AUTH_TOKEN_KEY = "verdant_auth_token";
 
 export function AppProviders({ children }) {
   const [cartItems, setCartItems] = useState([]);
   const [wishlistIds, setWishlistIds] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [authUser, setAuthUser] = useState(null);
+  const [authToken, setAuthToken] = useState(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
   const cartItemsRef = useRef([]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const saved = window.localStorage.getItem(AUTH_STORAGE_KEY);
-    if (!saved) return;
-    try {
-      setAuthUser(JSON.parse(saved));
-    } catch {
-      window.localStorage.removeItem(AUTH_STORAGE_KEY);
+    const savedToken = window.localStorage.getItem(AUTH_TOKEN_KEY);
+    if (saved) {
+      try {
+        setAuthUser(JSON.parse(saved));
+      } catch {
+        window.localStorage.removeItem(AUTH_STORAGE_KEY);
+      }
     }
+    if (savedToken) {
+      setAuthToken(savedToken);
+    }
+
+    const initializeAuth = async () => {
+      try {
+        const profileResponse = await fetchProfile();
+        const user = profileResponse?.data;
+        if (user) {
+          setAuthUser(user);
+          window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+        }
+      } catch (error) {
+        const message = error?.message?.toString() || "";
+        if (message.includes("Invalid") || message.includes("Unauthorized") || message.includes("login")) {
+          try {
+            await refreshToken();
+            const profileResponse = await fetchProfile();
+            const user = profileResponse?.data;
+            if (user) {
+              setAuthUser(user);
+              window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+            }
+          } catch {
+            setAuthUser(null);
+            setAuthToken(null);
+            window.localStorage.removeItem(AUTH_STORAGE_KEY);
+            window.localStorage.removeItem(AUTH_TOKEN_KEY);
+          }
+        } else {
+          setAuthUser(null);
+          setAuthToken(null);
+          window.localStorage.removeItem(AUTH_STORAGE_KEY);
+          window.localStorage.removeItem(AUTH_TOKEN_KEY);
+        }
+      } finally {
+        setAuthLoaded(true);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   useEffect(() => {
@@ -96,51 +143,48 @@ export function AppProviders({ children }) {
     [cartItems],
   );
 
-  const registerUser = useCallback(({ name, email }) => {
-    const user = {
-      id: `user-${Date.now()}`,
-      name,
+  const registerUser = useCallback(async ({ name, email, password }) => {
+    const response = await signup({
+      fullName: name,
       email,
-      createdAt: new Date().toISOString(),
-    };
-    setAuthUser(user);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-    }
-    return user;
+      password,
+    });
+    return response;
   }, []);
 
-  const loginUser = useCallback(({ email }) => {
-    const existing = typeof window !== "undefined" ? window.localStorage.getItem(AUTH_STORAGE_KEY) : null;
-    let user = null;
-    if (existing) {
-      try {
-        user = JSON.parse(existing);
-      } catch {
-        user = null;
+  const loginUser = useCallback(async ({ email, password }) => {
+    const response = await login({ email, password });
+    let user = response?.data?.user ?? {
+      name: email.split("@")[0],
+      email,
+      id: `user-${Date.now()}`,
+    };
+    if (user && user.role && typeof user.role === "string") {
+      user.role = user.role.toLowerCase();
+    }
+    const token = response?.data?.accessToken;
+    setAuthUser(user);
+    setAuthToken(token || null);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+      if (token) {
+        window.localStorage.setItem(AUTH_TOKEN_KEY, token);
       }
     }
-    if (!user) {
-      user = {
-        id: `user-${Date.now()}`,
-        name: email.split("@")[0],
-        email,
-        createdAt: new Date().toISOString(),
-      };
-    } else {
-      user = { ...user, email };
-    }
-    setAuthUser(user);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-    }
     return user;
   }, []);
 
-  const logoutUser = useCallback(() => {
+  const logoutUser = useCallback(async () => {
+    try {
+      await logout();
+    } catch {
+      // fallback: clear auth state even if logout endpoint fails
+    }
     setAuthUser(null);
+    setAuthToken(null);
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(AUTH_STORAGE_KEY);
+      window.localStorage.removeItem(AUTH_TOKEN_KEY);
     }
   }, []);
 
@@ -160,6 +204,7 @@ export function AppProviders({ children }) {
       isInWishlist,
       authUser,
       isAuthenticated: Boolean(authUser),
+      authLoaded,
       registerUser,
       loginUser,
       logoutUser,
@@ -176,6 +221,7 @@ export function AppProviders({ children }) {
       toggleWishlist,
       isInWishlist,
       authUser,
+      authLoaded,
       registerUser,
       loginUser,
       logoutUser,

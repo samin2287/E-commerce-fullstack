@@ -14,6 +14,7 @@ export default function LoginPage() {
   const { loginUser } = useShop();
   const [values, setValues] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState("");
 
   const onChange = (field, value) => {
     setValues((prev) => ({ ...prev, [field]: value }));
@@ -28,20 +29,38 @@ export default function LoginPage() {
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!validate()) {
-      toast.error("Login failed. Please check your email and password.");
-      return;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!validate()) {
+    setServerError("Please fix the highlighted fields.");
+    toast.error("Login failed. Please check your email and password.");
+    return;
+  }
+
+  try {
+    setServerError("");
+
+    const user = await login({
+      email: values.email.trim().toLowerCase(),
+      password: values.password,
+    });
+
+    console.log("LOGIN USER:", user);
+
+    toast.success("Welcome back.");
+
+    if (user?.role === "admin") {
+      router.push("/admin-dashboard");
+    } else {
+      router.push("/user-dashboard");
     }
-    try {
-      const user = loginUser({ email: values.email.trim().toLowerCase() });
-      toast.success(`Welcome back, ${user.name}.`);
-      router.push("/dashboard");
-    } catch {
-      toast.error("Login failed. Please try again.");
-    }
-  };
+  } catch (error) {
+    const message = error?.message || "Login failed. Please try again.";
+    setServerError(message);
+    toast.error(message);
+  }
+};
 
   return (
     <div className="space-y-6">
@@ -50,6 +69,11 @@ export default function LoginPage() {
         <p className="mt-1 text-sm text-zinc-600">Sign in to your account and continue shopping.</p>
       </div>
       <form className="space-y-4" onSubmit={handleSubmit}>
+        {serverError ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {serverError}
+          </div>
+        ) : null}
         <Input
           label="Email"
           name="email"
@@ -57,7 +81,10 @@ export default function LoginPage() {
           autoComplete="email"
           required
           value={values.email}
-          onChange={(e) => onChange("email", e.target.value)}
+          onChange={(e) => {
+            onChange("email", e.target.value);
+            setServerError("");
+          }}
           error={errors.email}
           placeholder="you@example.com"
         />
@@ -68,7 +95,10 @@ export default function LoginPage() {
           autoComplete="current-password"
           required
           value={values.password}
-          onChange={(e) => onChange("password", e.target.value)}
+          onChange={(e) => {
+            onChange("password", e.target.value);
+            setServerError("");
+          }}
           error={errors.password}
           placeholder="At least 6 characters"
         />
